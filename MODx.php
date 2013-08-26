@@ -16,6 +16,9 @@ abstract class MODxAPI extends APIhelpers{
 		}catch(Exception $e){ die($e->getMessage()); }
 	}
 	
+	final protected function modxConfig($name, $default=null){
+		return isset($this->modx->config[$name]) ? $this->modx->config[$name] : $default;
+	}
 	final protected function query($SQL){
 		return $this->modx->db->query($SQL);
 	}
@@ -41,7 +44,7 @@ abstract class MODxAPI extends APIhelpers{
 	final public function clearCache($fire_events = null){
 		$this->modx->clearCache();
 
-		include_once ($this->modx->getManagetPath().'/processors/cache_sync.class.processor.php');
+		include_once ($this->modx->getManagerPath().'/processors/cache_sync.class.processor.php');
 		$sync = new synccache();
 		$sync->setCachepath($this->modx->getCachePath());
 		$sync->setReport(false);
@@ -81,7 +84,7 @@ abstract class MODxAPI extends APIhelpers{
 		} else {
 			try{
 				if(is_scalar($this->field[$key])){
-					$tmp= "{$key}='{$this->field[$key]}'";
+					$tmp= "{$key}='{$this->modx->db->escape($this->field[$key])}'";
 				} else throw new Exception("{$key} is not scalar <pre>".print_r($this->field[$key],true)."</pre>");
 			}catch(Exception $e){ die($e->getMessage()); }
 		}
@@ -110,7 +113,7 @@ abstract class MODxAPI extends APIhelpers{
         }
         foreach($IDs as $item){
             $item = trim($item);
-            if(is_int($item) && (int)$item>=0){ //Fix 0xfffffffff
+            if(is_scalar($item) && (int)$item>=0){ //Fix 0xfffffffff
 				if(!empty($ignore) && in_array((int)$item, $ignore, true)){
 					$this->log[] =  'Ignore id '.(int)$item;
 				}else{
@@ -225,6 +228,28 @@ abstract class MODxAPI extends APIhelpers{
 
     final protected function sanitarTag($data){
         return parent::sanitarTag($this->modx->stripTags($data));
+    }
+
+    final protected function checkVersion($version, $dmi3yy=true){
+        $flag = false;
+        $currentVer = $this->modx->getVersionData('version');
+        $tmp = substr($currentVer,0,strlen($version));
+        if(version_compare($tmp, $version, '>=')){
+            $flag = true;
+            if($dmi3yy){
+                $flag = (boolean)preg_match('/^'.$tmp.'(.*)\-d/',$currentVer);
+            }
+        }
+        return $flag;
+    }
+
+    protected function eraseField($name){
+        $flag = false;
+        if(isset($this->field[$name])){
+            unset($this->field[$name]);
+            $flag = true;
+        }
+        return $flag;
     }
 }
 

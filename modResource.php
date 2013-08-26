@@ -38,7 +38,7 @@ class modResource extends MODxAPI{
 			'privateweb'=>'0',
 			'privatemgr'=>'0',
 			'content_dispo'=>'0',
-			'hidemenu'=>'1',
+			'hidemenu'=>'0',
 			'alias_visible'=>'1'
 		);
 	private $table=array('"'=>'_',"'"=>'_',' '=>'_','.'=>'_',','=>'_','а'=>'a','б'=>'b','в'=>'v',
@@ -94,10 +94,6 @@ class modResource extends MODxAPI{
 		return $this;
 	}
 	public function save($fire_events = null,$clearCache = false){
-		if ($this->field['pagetitle'] == '') {
-			$this->log[] =  'Pagetitle is empty in <pre>'.print_r($this->field,true).'</pre>';
-			return false;
-		}
 		$this->set('alias',$this->getAlias());
 
 		$this->invokeEvent('OnBeforeDocFormSave',array (
@@ -106,13 +102,41 @@ class modResource extends MODxAPI{
 		),$fire_events);
 		
 		$fld = $this->toArray();
+		
 		foreach($this->default_field as $key=>$value){
 			if ($this->newDoc && $this->get($key) == '' && $this->get($key)!==$value){
+				switch($key){
+					case 'cacheable':{
+						$value = $this->modxConfig('cache_default');
+						break;
+					}
+					case 'template':{
+						$value = $value = $this->modxConfig('default_template');
+						break;
+					}
+					case 'published':{
+						$value = $this->modxConfig('publish_default');
+						break;
+					}
+					case 'searchable':{
+						$value = $this->modxConfig('search_default');
+						break;
+					}
+					case 'donthit':{
+						$value = $this->modxConfig('track_visitors');
+						break;
+					}
+				}
 				$this->set($key,$value);
 			}
-			$this->Uset($key);
+            if($key == 'alias_visible' && !$this->checkVersion('1.0.10',true)){
+                $this->eraseField('alias_visible');
+            }else{
+			    $this->Uset($key);
+            }
 			unset($fld[$key]);
 		}
+		
 		if (!empty($this->set)){
 			if($this->newDoc){
 				$SQL = "INSERT into {$this->makeTable('site_content')} SET ".implode(', ', $this->set);
@@ -185,10 +209,11 @@ class modResource extends MODxAPI{
 		
 	}
 	private function checkAlias($alias){
-		if($this->modx->config['friendly_urls']){
+		$alias = strtolower($alias);
+		if($this->modxConfig('friendly_urls')){
 			$flag = false;
 			$_alias = $this->modx->db->escape($alias);
-			if(!$this->modx->config['allow_duplicate_alias'] || ($this->modx->config['allow_duplicate_alias'] && $this->modx->conifg['use_alias_path'])){
+			if((!$this->modxConfig('allow_duplicate_alias') && !$this->modxConfig('use_alias_path')) || ($this->modxConfig('allow_duplicate_alias') && $this->modxConfig('use_alias_path'))){
 				$flag = $this->modx->db->getValue($this->query("SELECT id FROM {$this->makeTable('site_content')} WHERE alias='{$_alias}' AND parent={$this->get('parent')} LIMIT 1"));
 			} else {
 				$flag = $this->modx->db->getValue($this->query("SELECT id FROM {$this->makeTable('site_content')} WHERE alias='{$_alias}' LIMIT 1"));
