@@ -267,6 +267,7 @@ class modResource extends MODxAPI{
 				$alias = '';
 			}
 		}
+		$alias = $this->modx->stripAlias($alias);
 		return $this->checkAlias($alias);
 	}
 }
