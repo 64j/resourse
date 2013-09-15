@@ -266,7 +266,7 @@ class APIhelpers{
      * @return boolean Результат проверки почтового ящика
      * @author Anton Shevchuk
      */
-    final public function emailValidate($email,$dns=true){
+    public function emailValidate($email,$dns=true){
         $flag=false;
         if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
             list($user, $domain) = explode("@", $email, 2);
@@ -307,7 +307,7 @@ class APIhelpers{
      * $this->genPass(20,"."); //AMV,>&?J)v55,(^g}Z06
      * $this->genPass(20,"aaa0aaa.A"); //rtvKja5xb0\KpdiRR1if
      */
-    final public function genPass($len,$data=''){
+    public function genPass($len,$data=''){
         if($data==''){
             $data='Aa0.';
         }
@@ -367,7 +367,7 @@ class APIhelpers{
      *
      * @see http://stackoverflow.com/questions/5036443/php-how-to-block-proxies-from-my-site
      */
-    final public function getUserIP($out='127.0.0.1'){
+    public function getUserIP($out='127.0.0.1'){
         //Порядок условий зависит от приоритетов
         switch(true){
             case ($tmp = $this->_getEnv('HTTP_COMING_FROM')):
@@ -394,7 +394,7 @@ class APIhelpers{
         return (false!==$out && preg_match('|^(?:[0-9]{1,3}\.){3,3}[0-9]{1,3}$|',$out, $matches)) ? $out : false;
     }
 
-    final public function sanitarTag($data){
+    public function sanitarTag($data){
         $data = htmlspecialchars($data);
         $data=str_replace(array('[', ']', '{', '}'), array('&#91;', '&#93;', '&#123;', '&#125;'),$data);
         return $data;
