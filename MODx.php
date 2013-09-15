@@ -226,7 +226,7 @@ abstract class MODxAPI extends APIhelpers{
 	abstract public function save($fire_events = null,$clearCache = false);
 	abstract public function delete($ids,$fire_events = null);
 
-    final protected function sanitarTag($data){
+    final public function sanitarTag($data){
         return parent::sanitarTag($this->modx->stripTags($data));
     }
 
