@@ -266,7 +266,7 @@ class APIhelpers{
      * @return boolean Результат проверки почтового ящика
      * @author Anton Shevchuk
      */
-    protected function emailValidate($email,$dns=true){
+    final public function emailValidate($email,$dns=true){
         $flag=false;
         if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
             list($user, $domain) = explode("@", $email, 2);
@@ -307,7 +307,7 @@ class APIhelpers{
      * $this->genPass(20,"."); //AMV,>&?J)v55,(^g}Z06
      * $this->genPass(20,"aaa0aaa.A"); //rtvKja5xb0\KpdiRR1if
      */
-    protected function genPass($len,$data=''){
+    final public function genPass($len,$data=''){
         if($data==''){
             $data='Aa0.';
         }
@@ -338,6 +338,23 @@ class APIhelpers{
         return $pass;
     }
 
+	private function _getEnv($data){
+        $out=false;
+        switch(true){
+            case (isset($_SERVER[$data])):
+                $out = $_SERVER[$data]; break;
+            case (isset($_ENV[$data])):
+                $out = $_ENV[$data]; break;
+            case ($tmp = getenv($data)):
+                $out = $tmp; break;
+            case (function_exists('apache_getenv') && $tmp=apache_getenv($data, true)):
+                $out = $tmp; break;
+            default:
+                $out = false;
+        }
+        unset($tmp);
+        return $out;
+    }
     /**
      * User IP
      *
@@ -350,41 +367,22 @@ class APIhelpers{
      *
      * @see http://stackoverflow.com/questions/5036443/php-how-to-block-proxies-from-my-site
      */
-    protected function getUserIP($out='127.0.0.1'){
-        //see: http://www.php.net/manual/ru/functions.anonymous.php
-        $getEnv = function($data){
-            $out=false;
-            switch(true){
-                case (isset($_SERVER[$data])):
-                    $out = $_SERVER[$data]; break;
-                case (isset($_ENV[$data])):
-                    $out = $_ENV[$data]; break;
-                case ($tmp = getenv($data)):
-                    $out = $tmp; break;
-                case (function_exists('apache_getenv') && $tmp=apache_getenv($data, true)):
-                    $out = $tmp; break;
-                default:
-                    $out = false;
-            }
-            unset($tmp);
-            return $out;
-        };
-
+    final public function getUserIP($out='127.0.0.1'){
         //Порядок условий зависит от приоритетов
         switch(true){
-            case ($tmp = $getEnv('HTTP_COMING_FROM')):
+            case ($tmp = $this->_getEnv('HTTP_COMING_FROM')):
                 $out = $tmp; break;
-            case ($tmp = $getEnv('HTTP_X_COMING_FROM')):
+            case ($tmp = $this->_getEnv('HTTP_X_COMING_FROM')):
                 $out = $tmp; break;
-            case ($tmp = $getEnv('HTTP_VIA')):
+            case ($tmp = $this->_getEnv('HTTP_VIA')):
                 $out = $tmp; break;
-            case ($tmp = $getEnv('HTTP_FORWARDED')):
+            case ($tmp = $this->_getEnv('HTTP_FORWARDED')):
                 $out = $tmp; break;
-            case ($tmp = $getEnv('HTTP_FORWARDED_FOR')):
+            case ($tmp = $this->_getEnv('HTTP_FORWARDED_FOR')):
                 $out = $tmp; break;
-            case ($tmp = $getEnv('HTTP_X_FORWARDED')):
+            case ($tmp = $this->_getEnv('HTTP_X_FORWARDED')):
                 $out = $tmp; break;
-            case ($tmp = $getEnv('HTTP_X_FORWARDED_FOR')):
+            case ($tmp = $this->_getEnv('HTTP_X_FORWARDED_FOR')):
                 $out = $tmp; break;
             case (!empty($_SERVER['REMOTE_ADDR'])):
                 $out=$_SERVER['REMOTE_ADDR']; break;
@@ -396,7 +394,7 @@ class APIhelpers{
         return (false!==$out && preg_match('|^(?:[0-9]{1,3}\.){3,3}[0-9]{1,3}$|',$out, $matches)) ? $out : false;
     }
 
-    protected function sanitarTag($data){
+    final public function sanitarTag($data){
         $data = htmlspecialchars($data);
         $data=str_replace(array('[', ']', '{', '}'), array('&#91;', '&#93;', '&#123;', '&#125;'),$data);
         return $data;
