@@ -233,6 +233,9 @@ abstract class MODxAPI extends APIhelpers{
     final protected function checkVersion($version, $dmi3yy=true){
         $flag = false;
         $currentVer = $this->modx->getVersionData('version');
+        if(is_array($currentVer)){
+            $currentVer = isset($currentVer['version']) ? $currentVer['version'] : '';
+        }
         $tmp = substr($currentVer,0,strlen($version));
         if(version_compare($tmp, $version, '>=')){
             $flag = true;
