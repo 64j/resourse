@@ -151,11 +151,12 @@ class modResource extends MODxAPI{
 		foreach($fld as $key=>$value){
 			if ($value=='') continue;
  			if ($this->tv[$key]!=''){
-				$result = $this->query("UPDATE {$this->makeTable('site_tmplvar_contentvalues')} SET `value` = '{$value}' WHERE `contentid` = '{$this->id}' AND `tmplvarid` = '{$this->tv[$key]}';");
-				$rc = mysql_affected_rows();
-				if ($rc==0){
-					$result = $this->query("INSERT into {$this->makeTable('site_tmplvar_contentvalues')} SET `contentid` = {$this->id},`tmplvarid` = {$this->tv[$key]},`value` = '{$value}';");
-				}
+                $result = $this->query("SELECT `value` FROM {$this->makeTable('site_tmplvar_contentvalues')} WHERE `contentid` = '{$this->id}' AND `tmplvarid` = '{$this->tv[$key]}'");
+                if($this->modx->db->getRecordCount($result)>0){
+                    $result = $this->query("UPDATE {$this->makeTable('site_tmplvar_contentvalues')} SET `value` = '{$value}' WHERE `contentid` = '{$this->id}' AND `tmplvarid` = '{$this->tv[$key]}';");
+                }else{
+                    $result = $this->query("INSERT into {$this->makeTable('site_tmplvar_contentvalues')} SET `contentid` = {$this->id},`tmplvarid` = {$this->tv[$key]},`value` = '{$value}';");
+                }
 			}
 		}
 		$this->invokeEvent('OnDocFormSave',array (
