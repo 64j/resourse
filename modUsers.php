@@ -1,11 +1,6 @@
 <?php
 require_once('MODx.php'); 
 
-/*
- * @TODO: 2) Установить пользователю кукисы как в WebLoginPE по паре логин-пароль, id, только логину, только мылу
- * @TODO: 4) Подключить к пользователю группы
- * @TODO: 5) Автологин по кукисам как в WebLoginPE
- */
 class modUsers extends MODxAPI{
 
     protected $default_field = array(
