@@ -44,9 +44,15 @@ abstract class MODxAPI extends APIhelpers{
 	final public function clearCache($fire_events = null){
 		$this->modx->clearCache();
 
-		include_once ($this->modx->getManagerPath().'/processors/cache_sync.class.processor.php');
+		include_once (MODX_MANAGER_PATH.'processors/cache_sync.class.processor.php');
 		$sync = new synccache();
-		$sync->setCachepath($this->modx->getCachePath());
+
+        $path = $this->modx->getCachePath();
+        if(substr($path,0,1)=='/'){
+            $path = MODX_BASE_PATH . ltrim($path, "/");
+        }
+        
+		$sync->setCachepath($path);
 		$sync->setReport(false);
 		$sync->emptyCache();
 
