@@ -34,7 +34,7 @@ class modUsers extends MODxAPI{
         )
     );
 
-    private function findUser($data){
+    protected function findUser($data){
         switch(true){
             case (is_int($data) || ((int)$data>0 && (string)intval($data)===$data)): $find= 'attribute.internalKey'; break;
             case filter_var($data, FILTER_VALIDATE_EMAIL): $find = 'attribute.email'; break;
@@ -47,7 +47,7 @@ class modUsers extends MODxAPI{
         $this->close();
         $this->newDoc = false;
 
-        if(!$find=$this->findUser($id)) return false; //@TODO: log error
+        if(!$find=$this->findUser($id))  { return false; } //@TODO: log error
 
         $result = $this->query("
             SELECT * from {$this->makeTable('web_user_attributes')} as attribute
@@ -66,7 +66,7 @@ class modUsers extends MODxAPI{
         if(is_scalar($value) && is_scalar($key) && !empty($key)){
             switch($key){
                 case 'password': {
-                    $value = md5($value); //@TODO check modx Version
+                    $value = $this->getPassword($value);
                     break;
                 }
             }
@@ -81,17 +81,17 @@ class modUsers extends MODxAPI{
 
     public function save($fire_events = null,$clearCache = false){
         if ($this->get('email')=='' || $this->get('username')=='' || $this->get('password')=='') {
-            $this->log[] =  'Email, username or password is empty <pre>'.print_r($this->toArray(),true).'</pre>';
+            $this->log['EmptyPKField'] =  'Email, username or password is empty <pre>'.print_r($this->toArray(),true).'</pre>';
             return false;
         }
 
         if(!$this->checkUnique('web_users','username')){
-            $this->log[] =  'username not unique <pre>'.print_r($this->get('username'),true).'</pre>';
+            $this->log['UniqueUsername'] =  'username not unique <pre>'.print_r($this->get('username'),true).'</pre>';
             return false;
         }
 
         if(!$this->checkUnique('web_user_attributes','email','internalKey')){
-            $this->log[] =  'Email not unique <pre>'.print_r($this->get('email'),true).'</pre>';
+            $this->log['UniqueEmail'] =  'Email not unique <pre>'.print_r($this->get('email'),true).'</pre>';
             return false;
         }
 
@@ -111,10 +111,12 @@ class modUsers extends MODxAPI{
             }else{
                 $SQL = "UPDATE {$this->makeTable('web_users')} SET ".implode(', ', $this->set['user'])." WHERE id = ".$this->id;
             }
-            $this->query($SQL);
+            $data = $this->query($SQL);
         }
 
-        if($this->newDoc) $this->id = $this->modx->db->getInsertId();
+        if($this->newDoc) {
+			$this->id = $this->modx->db->getInsertId();
+		}
 
 
         foreach($this->default_field['attribute'] as $key){
@@ -135,7 +137,7 @@ class modUsers extends MODxAPI{
             if ($value=='') continue;
                 $this->query("UPDATE {$this->makeTable('web_user_settings')} SET `setting_value` = '{$value}' WHERE `webuser` = '{$this->id}' AND `setting_name` = '{$key}';");
                 if (mysql_affected_rows()==0){
-                    $this->query("INSERT into {$this->makeTable('web_user_settings')} SET `webuser` = {$this->id},`setting_name` = {$key},`setting_value` = '{$value}';");
+                    $this->query("INSERT into {$this->makeTable('web_user_settings')} SET `webuser` = {$this->id},`setting_name` = '{$key}',`setting_value` = '{$value}';");
                 }
         }
 
@@ -174,7 +176,12 @@ class modUsers extends MODxAPI{
         return $flag;
     }
 
-    public function checkBlock($id){
+    public function checkBlock($id=0){
+        $tmp = clone $this;
+        if($id && $tmp->getID()!=$id){
+            $tmp->edit($id);
+        }
+        unset($tmp);
         //@TODO валидация блокировок
         return false;
     }
@@ -185,7 +192,7 @@ class modUsers extends MODxAPI{
         }
         $flag = false;
         if(
-            ($tmp->getID() && $tmp->get('password')==$password) &&
+            ($tmp->getID() && $tmp->get('password')==$this->getPassword($password)) &&
             (!$blocker || ($blocker && !$tmp->checkBlock($id)))
         ){
             $flag = true;
@@ -226,24 +233,25 @@ class modUsers extends MODxAPI{
      * remeber может быть числом в секундах
      */
     protected function SessionHandler($directive, $cookieName, $remember=true){
-		if($this->getID()){
 			switch($directive){
 				case 'start':{
-					$_SESSION['webShortname'] = $this->get('username');
-					$_SESSION['webFullname'] = $this->get('fullname');
-					$_SESSION['webEmail'] = $this->get('email');
-					$_SESSION['webValidated'] = 1;
-					$_SESSION['webInternalKey'] = $this->getID();
-					$_SESSION['webValid'] = base64_encode($this->get('password'));
-					$_SESSION['webUser'] = base64_encode($this->get('username'));
-					$_SESSION['webFailedlogins'] = $this->get('failedlogincount');
-					$_SESSION['webLastlogin'] = $this->get('lastlogin');
-					$_SESSION['webnrlogins'] = $this->get('logincount');
-					$_SESSION['webUserGroupNames'] = '';
-					if($remember){
-						$cookieValue = md5($this->get('username')).'|'.$this->get('password');
-						$cookieExpires = time() + (is_bool($remember) ? (60 * 60 * 24 * 365 * 5) : (int)$remember);
-						setcookie($cookieName, $cookieValue, $cookieExpires, '/');
+					if($this->getID()){
+						$_SESSION['webShortname'] = $this->get('username');
+						$_SESSION['webFullname'] = $this->get('fullname');
+						$_SESSION['webEmail'] = $this->get('email');
+						$_SESSION['webValidated'] = 1;
+						$_SESSION['webInternalKey'] = $this->getID();
+						$_SESSION['webValid'] = base64_encode($this->get('password'));
+						$_SESSION['webUser'] = base64_encode($this->get('username'));
+						$_SESSION['webFailedlogins'] = $this->get('failedlogincount');
+						$_SESSION['webLastlogin'] = $this->get('lastlogin');
+						$_SESSION['webnrlogins'] = $this->get('logincount');
+						$_SESSION['webUserGroupNames'] = '';
+						if($remember){
+							$cookieValue = md5($this->get('username')).'|'.$this->get('password');
+							$cookieExpires = time() + (is_bool($remember) ? (60 * 60 * 24 * 365 * 5) : (int)$remember);
+							setcookie($cookieName, $cookieValue, $cookieExpires, '/');
+						}
 					}
 					break;
 				}
@@ -274,7 +282,6 @@ class modUsers extends MODxAPI{
 					break;
 				}
 			}
-		}
         return $this;
     }
 }

@@ -1,3 +1,7 @@
+## 1.0.6 (20.11.2013)
+* Исправлен баг с сохранением данных о веб-пользователе в таблицу web_user_settings
+* Добавлен метод getLog() для получения данных из массива log
+
 ## 1.0.5 (14.11.2013)
 * Добавлен абстрактный класс autoTable и на его основе созданы классы modChunk, modSnippet, modTemplate, modCategories, modModule, modPlugin
 

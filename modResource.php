@@ -94,6 +94,11 @@ class modResource extends MODxAPI{
 		return $this;
 	}
 	public function save($fire_events = null,$clearCache = false){
+		if ($this->field['pagetitle'] == '') {
+			$this->log['emptyPagetitle'] =  'Pagetitle is empty in <pre>'.print_r($this->field,true).'</pre>';
+			return false;
+		}
+
 		$this->set('alias',$this->getAlias());
 
 		$this->invokeEvent('OnBeforeDocFormSave',array (
@@ -146,7 +151,9 @@ class modResource extends MODxAPI{
 			$this->query($SQL);
 		}
 		
-		if($this->newDoc) $this->id = $this->modx->db->getInsertId();
+		if($this->newDoc) {
+			$this->id = $this->modx->db->getInsertId();
+		}
 		
 		foreach($fld as $key=>$value){
 			if ($value=='') continue;

@@ -35,6 +35,9 @@ abstract class MODxAPI extends APIhelpers{
 		$this->log = array();
 		return $this;
 	}
+	final public function getLog(){
+        return $this->log;
+    }
 	final public function list_log($flush = false){
 		echo '<pre>'.print_r($this->log,true).'</pre>';
 		if($flush) $this->clearLog();
@@ -86,11 +89,11 @@ abstract class MODxAPI extends APIhelpers{
         $tmp = '';
 		if(!isset($this->field[$key])){ 
 			$tmp = "{$key}=''";
-			$this->log[] =  '{$key} is empty';
+			$this->log[] =  "{$key} is empty";
 		} else {
 			try{
 				if(is_scalar($this->field[$key])){
-					$tmp= "{$key}='{$this->modx->db->escape($this->field[$key])}'";
+					$tmp= "`{$key}`='{$this->modx->db->escape($this->field[$key])}'";
 				} else throw new Exception("{$key} is not scalar <pre>".print_r($this->field[$key],true)."</pre>");
 			}catch(Exception $e){ die($e->getMessage()); }
 		}
@@ -175,8 +178,21 @@ abstract class MODxAPI extends APIhelpers{
 		return $flag;
 	}
 	
-	public function toArray(){
-		return $this->field;
+	public function toArray($prefix = '', $suffix='', $sep = '_'){
+		$tpl = '';
+        $plh = '[+key+]';
+        if($prefix!==''){$tpl = $prefix.$sep;}
+        $tpl.= $plh;
+        if($suffix!==''){$tpl .= $sep.$suffix;}
+        $out = array();
+        if($tpl!=$plh){
+            foreach($this->field as $key=>$value){
+                $out[str_replace($plh,$key,$tpl)] = $value;
+            }
+        }else{
+            $out = $this->field;
+        }
+        return  $out;
 	}
 	
 	final protected function makeTable($table){
@@ -280,14 +296,14 @@ class APIhelpers{
         if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
             list($user, $domain) = explode("@", $email, 2);
             if (!$dns || ($dns && checkdnsrr($domain,"MX") && checkdnsrr($domain,"A"))) {
-                $flag=$email;
+                 $error = false;
             } else {
-                die('Email has invalid domain name');
+                 $error = 'dns';
             }
         } else {
-            die('Email is invalid');
+             $error = 'format';
         }
-        return $flag;
+        return $error;
     }
 
     /**
@@ -407,5 +423,70 @@ class APIhelpers{
         $data = htmlspecialchars($data);
         $data=str_replace(array('[', ']', '{', '}'), array('&#91;', '&#93;', '&#123;', '&#125;'),$data);
         return $data;
+    }
+	
+	/**
+     * Проверка строки на наличе запрещенных символов
+     * Проверка конечно круто, но валидация русских символов в строке порой завершается не удачей по разным причинам
+     * (начиная от кривых настроек сервера и заканчивая кривыми настройками кодировки на сайте)
+     *
+     * @param $value Проверяемая строка
+     * @param int $minLen Минимальная длина строки
+     * @param array $alph Разрешенные алфавиты
+     * @param array $mixArray Примесь символов, которые так же могут использоваться в строке
+     * @return bool
+     */
+    public function checkString($value, $minLen = 1, $alph = array(), $mixArray = array(),$debug=false){
+        $flag = true;
+        $len = mb_strlen($value, 'UTF-8');
+        $value = trim($value);
+        if(mb_strlen($value, 'UTF-8')==$len){
+            $data = is_array($mixArray) ? $mixArray : array();
+            $alph = is_array($alph) ? array_unique($alph) : array();
+            foreach($alph as $item){
+                $item = strtolower($item);
+                switch($item){
+                    case 'rus':{
+                        $data = array_merge($data, array(
+                            'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ё', 'Ж', 'З', 'И', 'Й',
+                            'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф',
+                            'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я'
+                        ));
+                        break;
+                    }
+                    case 'num':{
+                        $tmp = range('0', '9');
+                        foreach($tmp as $t){
+                            $data[] = (string)$t;
+                        }
+                        //$data = array_merge($data, range('0', '9'));
+                        /*$data = array_merge($data, array(
+                            '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'
+                        ));*/
+                        break;
+                    }
+                    case 'eng':{
+                        $data = array_merge($data, range('A', 'Z'));
+                        /*$data = array_merge($data, array(
+                            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
+                            'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
+                            'W', 'X', 'Y', 'Z'
+                        ));*/
+                        break;
+                    }
+                }
+            }
+            for($i=0;$i<$len;$i++){
+                $chr = mb_strtoupper(mb_substr($value, $i, 1, 'UTF-8'), 'UTF-8');
+                if(!in_array($chr, $data, true)){
+                    $flag = false;
+                    break;
+                }
+            }
+            $flag = ($flag && $len >= $minLen);
+        }else{
+            $flag = false;
+        }
+        return $flag;
     }
 }
