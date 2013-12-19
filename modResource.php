@@ -156,16 +156,19 @@ class modResource extends MODxAPI{
 		}
 		
 		foreach($fld as $key=>$value){
-			if ($value=='') continue;
- 			if ($this->tv[$key]!=''){
+			if(empty($this->tv[$key])) continue;
+            if($value === ''){
+                $result = $this->query("DELETE FROM {$this->makeTable('site_tmplvar_contentvalues')} WHERE `contentid` = '{$this->id}' AND `tmplvarid` = '{$this->tv[$key]}'");
+            }else{
                 $result = $this->query("SELECT `value` FROM {$this->makeTable('site_tmplvar_contentvalues')} WHERE `contentid` = '{$this->id}' AND `tmplvarid` = '{$this->tv[$key]}'");
                 if($this->modx->db->getRecordCount($result)>0){
                     $result = $this->query("UPDATE {$this->makeTable('site_tmplvar_contentvalues')} SET `value` = '{$value}' WHERE `contentid` = '{$this->id}' AND `tmplvarid` = '{$this->tv[$key]}';");
                 }else{
                     $result = $this->query("INSERT into {$this->makeTable('site_tmplvar_contentvalues')} SET `contentid` = {$this->id},`tmplvarid` = {$this->tv[$key]},`value` = '{$value}';");
                 }
-			}
+            }
 		}
+		
 		$this->invokeEvent('OnDocFormSave',array (
 			"mode" => $this->newDoc ? "new" : "upd",
 			"id" => $this->id
