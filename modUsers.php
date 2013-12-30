@@ -56,9 +56,10 @@ class modUsers extends MODxAPI{
         ");
         $this->field = $this->modx->db->getRow($result);
 
-        $this->id = $this->get('internalKey');
+		$this->id = empty($this->field['internalKey'])? null :$this->get('internalKey');
         unset($this->field['id']);
         unset($this->field['internalKey']);
+		
         return $this;
 	}
 
