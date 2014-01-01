@@ -243,7 +243,9 @@ class modResource extends MODxAPI{
 		}
 		return $alias;
 	}
-	
+	public function issetField($key){
+        return (isset($this->default_field[$key]) || isset($this->tv[$key]));
+    }
 	public function get_TV(){
 		$result = $this->query('SELECT id,name FROM '.$this->makeTable('site_tmplvars'));
 		while($row = $this->modx->db->GetRow($result)) {

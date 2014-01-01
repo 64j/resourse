@@ -34,6 +34,9 @@ class modUsers extends MODxAPI{
         )
     );
 
+    public function issetField($key){
+        return (isset($this->default_field['user'][$key]) || isset($this->default_field['attribute'][$key]));
+    }
     protected function findUser($data){
         switch(true){
             case (is_int($data) || ((int)$data>0 && (string)intval($data)===$data)): $find= 'attribute.internalKey'; break;

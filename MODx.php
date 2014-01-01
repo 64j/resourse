@@ -93,9 +93,9 @@ abstract class MODxAPI extends APIhelpers{
 			$this->log[] =  "{$key} is empty";
 		} else {
 			try{
-				if(is_scalar($this->field[$key])){
+				if($this->issetField($key) && is_scalar($this->field[$key])){
 					$tmp= "`{$key}`='{$this->modx->db->escape($this->field[$key])}'";
-				} else throw new Exception("{$key} is not scalar <pre>".print_r($this->field[$key],true)."</pre>");
+				} else throw new Exception("{$key} is invalid <pre>".print_r($this->field[$key],true)."</pre>");
 			}catch(Exception $e){ die($e->getMessage()); }
 		}
         if(!empty($tmp)){
@@ -244,6 +244,9 @@ abstract class MODxAPI extends APIhelpers{
         $this->set=array();
     }
 
+    public function issetField($key){
+        return (is_scalar($key) && isset($this->default_field[$key]));
+    }
     abstract public function edit($id);
 
 	abstract public function save($fire_events = null,$clearCache = false);
