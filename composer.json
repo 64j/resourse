@@ -16,7 +16,7 @@
 			"/"
 		]
     },
-    "require-dev": {
+    "require": {
         "composer/installers": "~1.0"
     },
     "suggest": {
