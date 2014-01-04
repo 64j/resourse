@@ -1,7 +1,7 @@
 {
     "name": "agelxnash/resource",
     "type": "modxevo-lib",
-	"homepage": "http://blog.agel-nash.ru/addon/doclister.html",
+	"homepage": "http://blog.agel-nash.ru/list/tags/modxapi",
 	"description": "Advanced API MODX Evolution",
     "keywords": ["modx", "modxevo", "modxapi"],
     "license": "MIT",
@@ -25,6 +25,7 @@
 	"extra": {
 		"branch-alias": {
 			"dev-MODxAPI": "1.0-dev"
-		}
+		},
+		"installer-name": "MODxAPI"
 	}
 }
