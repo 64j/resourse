@@ -15,15 +15,11 @@
         "classmap": [
 			"/"
 		]
-    }
+    },
     "require-dev": {
         "composer/installers": "~1.0"
     },
     "suggest": {
         "composer/installers": "Allows you move the component code"
     }
-	"dist": {
-		"type": "zip",
-        "url": "https://github.com/AgelxNash/resourse/archive/MODxAPI.zip"
-    },
 }
