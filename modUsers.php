@@ -280,7 +280,7 @@ class modUsers extends MODxAPI{
 						setcookie($cookieName, '', time()-60, '/');
 					}else{
 						if (isset($_COOKIE[session_name()])){
-							setcookie(session_name(), '', '/');
+							setcookie(session_name(), '', time()-60, '/');
 						}
 						setcookie($cookieName, '', time()-60, '/');
 						session_destroy();
