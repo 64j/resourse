@@ -57,6 +57,17 @@ class modResource extends MODxAPI{
 		parent::__construct($modx);
 		$this->get_TV();
 	}
+	
+	public function toArrayMain($prefix = '', $suffix='', $sep = '_'){
+		$out = array_intersect_key($this->toArray(), $this->default_field); 
+		return $out;
+	}
+	
+	public function toArrayTV($prefix = '', $suffix='', $sep = '_'){
+		$out = array_diff_key($this->toArray(), $this->default_field);
+		return $out;
+	}
+	
 	public function set($key,$value){
 		if(is_scalar($value) && is_scalar($key) && !empty($key)){
 			switch($key){
@@ -90,6 +101,8 @@ class modResource extends MODxAPI{
 		}
 		if(empty($this->field['id'])){
 			$this->id = null;
+		}else{
+			$this->id = $this->field['id'];
 		}
 		unset($this->field['id']);
 		return $this;
