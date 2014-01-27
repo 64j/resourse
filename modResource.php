@@ -58,12 +58,12 @@ class modResource extends MODxAPI{
 		$this->get_TV();
 	}
 	
-	public function toArrayMain($prefix = '', $suffix='', $sep = '_'){
+	public function toArrayMain(){
 		$out = array_intersect_key($this->toArray(), $this->default_field); 
 		return $out;
 	}
 	
-	public function toArrayTV($prefix = '', $suffix='', $sep = '_'){
+	public function toArrayTV(){
 		$out = array_diff_key($this->toArray(), $this->default_field);
 		return $out;
 	}
