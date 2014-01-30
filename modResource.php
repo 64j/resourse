@@ -67,6 +67,12 @@ class modResource extends MODxAPI{
 		$out = array_diff_key($this->toArray(), $this->default_field);
 		return $out;
 	}
+	public function isWebShow(){
+		$pub = ($this->get('publishedon')<time() && $this->get('published'));
+		$unpub = ($this->get('unpub_date')==0 || $this->get('unpub_date')>time());
+		$del = ($this->get('deleted')==0 && ($this->get('deletedon')==0 || $this->get('deletedon')>time()));
+		return ($pub && $unpub && $del);
+	}
 	
 	public function set($key,$value){
 		if(is_scalar($value) && is_scalar($key) && !empty($key)){
