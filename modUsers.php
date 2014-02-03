@@ -10,7 +10,7 @@ class modUsers extends MODxAPI{
             'cachepwd'
         ),
         'attribute'=>array(
-            'fullname',
+			'fullname',
             'role',
             'email',
             'phone',
@@ -31,11 +31,14 @@ class modUsers extends MODxAPI{
             'fax',
             'photo',
             'comment'
-        )
+        ),
+		'hidden' => array(
+			'internalKey'
+		)
     );
 
     public function issetField($key){
-        return (isset($this->default_field['user'][$key]) || isset($this->default_field['attribute'][$key]));
+		return (in_array($key, $this->default_field['user']) || in_array($key, $this->default_field['attribute']) || in_array($key, $this->default_field['hidden']));
     }
     protected function findUser($data){
         switch(true){
@@ -121,7 +124,7 @@ class modUsers extends MODxAPI{
         if($this->newDoc) {
 			$this->id = $this->modx->db->getInsertId();
 		}
-
+		
 
         foreach($this->default_field['attribute'] as $key){
             $this->Uset($key,'attribute');
